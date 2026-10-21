@@ -7,21 +7,23 @@
 Cần cài Docker Desktop. Từ thư mục dự án, chạy:
 
 ```powershell
+.\scripts\new-demo-secrets.ps1
 docker compose up --build
 ```
+
+Giữ file `.env` ở nơi riêng tư; file này chứa các mật khẩu ngẫu nhiên riêng cho ứng dụng, PostgreSQL, pgAdmin và Grafana cùng khóa JWT, và đã được Git bỏ qua. Tài khoản ứng dụng là `admin`; xem `ADMIN_PASSWORD` trong `.env` để đăng nhập. Mỗi dịch vụ có mật khẩu riêng; không dùng mật khẩu demo mặc định.
 
 Mở các địa chỉ:
 
 - Ứng dụng qua Nginx reverse proxy: http://localhost:8082
 - Prometheus: http://localhost:9090
-- Grafana Docker: http://localhost:3001 (tài khoản demo `admin` / `admin`)
-- pgAdmin Docker: http://localhost:5050 (`admin@librarydemo.com` / `admin12345`)
-- Loki: http://localhost:3100
+- Grafana Docker: http://localhost:3001 (user `admin`, mật khẩu `GRAFANA_ADMIN_PASSWORD` trong `.env`)
+- pgAdmin Docker: http://localhost:5050 (email và mật khẩu trong `.env`)
 - Metrics: http://localhost:8082/metrics
 
-Nginx nhận lưu lượng ứng dụng tại cổng `8082` rồi proxy đến backend nội bộ `app:3000`; backend không còn publish cổng trực tiếp ra Windows. Tài khoản thư viện mặc định: `admin` / `admin12345`. Đổi `ADMIN_USERNAME`, `ADMIN_PASSWORD` và `JWT_SECRET` trước khi triển khai ra môi trường dùng thật. Grafana và PostgreSQL trong cấu hình mẫu cũng dùng thông tin đăng nhập demo; hãy thay đổi trước khi triển khai.
+Compose điều phối 8 dịch vụ trên ba mạng riêng: `frontend_net` nối Nginx với ứng dụng, `backend_net` nối ứng dụng và pgAdmin tới PostgreSQL, còn `monitoring_net` dành cho ứng dụng và các dịch vụ giám sát. PostgreSQL chỉ tham gia `backend_net`, không publish cổng ra host; backend ứng dụng cũng chỉ nhận truy cập nội bộ qua Nginx. Nginx không đặc quyền là cửa vào ứng dụng ở cổng `8082` và trả các header `X-Frame-Options`, `X-XSS-Protection` và `X-Content-Type-Options`. Chỉ publish các cổng cần cho demo: Nginx `8082`, pgAdmin `5050`, Prometheus `9090` và Grafana `3001`; Loki chỉ truy cập trong mạng monitoring. Các named volume giữ dữ liệu PostgreSQL, Prometheus, Loki, Grafana, pgAdmin và log ứng dụng khi container được tạo lại. Các dịch vụ chạy bằng user không đặc quyền; app, Nginx và Promtail dùng filesystem chỉ đọc, bỏ Linux capabilities và bật `no-new-privileges`. Mật khẩu DB, app, Grafana và pgAdmin được sinh ngẫu nhiên riêng, Compose không có mật khẩu mặc định yếu; backend từ chối khởi động nếu khóa JWT hoặc mật khẩu admin không đạt độ dài tối thiểu. Trước khi triển khai có HTTPS, bật `COOKIE_SECURE=true`.
 
-pgAdmin Docker tự đăng ký sẵn server `Library Docker` và kết nối database service `db`; mật khẩu database demo là `library`. Prometheus Docker dùng phiên bản 3.15.0, cùng phiên bản với bản Windows trong scripts, và đã được cấu hình scrape ứng dụng (`app:3000/metrics`) cùng chính Prometheus mỗi 15 giây; vào `/targets` sẽ thấy hai nhóm `library_app` và `prometheus` trong giao diện mới. Datasource Prometheus và Loki được tạo tự động trong Grafana. Ứng dụng ghi log dạng JSON ra console và `app.log`; Promtail đọc file log dùng chung và chuyển tới Loki. Trong Grafana Explore, chọn Loki và thử LogQL `{job="library"}`.
+pgAdmin Docker tự đăng ký sẵn server `Library Docker` và kết nối database service `db`; khi kết nối lần đầu, nhập `POSTGRES_PASSWORD` từ `.env`. Prometheus Docker dùng phiên bản 3.15.0, cùng phiên bản với bản Windows trong scripts, và đã được cấu hình scrape ứng dụng (`app:3000/metrics`) cùng chính Prometheus mỗi 15 giây; vào `/targets` sẽ thấy hai nhóm `library_app` và `prometheus` trong giao diện mới. Datasource Prometheus và Loki được tạo tự động trong Grafana. Ứng dụng ghi log dạng JSON ra console và `app.log`; Promtail đọc file log dùng chung và chuyển tới Loki. Trong Grafana Explore, chọn Loki và thử LogQL `{job="library"}`.
 
 Database được nạp thêm sách và độc giả mẫu khi ứng dụng khởi động; dữ liệu mẫu có 25 đầu sách, 12 độc giả và một số phiếu mượn đang hoạt động/quá hạn. Khi tạo phiếu mượn, nhập tên người mượn trực tiếp; không bắt buộc tạo thẻ độc giả trước. Các phiếu cũ vẫn hiển thị tên người đọc đã đăng ký.
 
@@ -30,12 +32,12 @@ Database được nạp thêm sách và độc giả mẫu khi ứng dụng kh�
 Cài Node.js 20 trở lên và PostgreSQL, tạo database `library`, sau đó cấu hình biến môi trường:
 
 ```powershell
-Copy-Item .env.example .env
+.\scripts\new-demo-secrets.ps1
 npm install
 npm start
 ```
 
-Điều chỉnh `DATABASE_URL` trong `.env` cho đúng PostgreSQL cục bộ. Lần khởi động đầu tiên tạo các bảng, dữ liệu demo và tài khoản quản trị. Ứng dụng local mặc định dùng cổng `8082`: mở http://localhost:8082.
+Điều chỉnh `DATABASE_URL` trong `.env` cho đúng PostgreSQL cục bộ và đặt `COOKIE_SECURE=true` nếu chạy sau HTTPS. Lần khởi động đầu tiên tạo các bảng, dữ liệu demo và tài khoản quản trị. Ứng dụng local mặc định dùng cổng `8082`: mở http://localhost:8082.
 
 ## Khởi chạy Grafana, Prometheus và pgAdmin trên Windows
 
@@ -47,13 +49,13 @@ Nếu dùng PostgreSQL local, chạy PowerShell từ thư mục dự án:
 ```
 
 - Ứng dụng thư viện: http://localhost:8082.
-- Grafana: http://localhost:3000 (bản cài Windows dùng cổng 3000; lần đầu đăng nhập `admin` / `admin` và được yêu cầu đổi mật khẩu).
+- Grafana: http://localhost:3000 (bản cài Windows dùng cổng 3000; đặt mật khẩu admin trùng với `GRAFANA_ADMIN_PASSWORD` trong `.env` để scripts cấu hình datasource được).
 - Prometheus: http://localhost:9090; dashboard kiểm tra scrape: http://localhost:9090/targets.
-- `start-pgadmin.ps1` đăng ký sẵn server `Library Demo` và mở pgAdmin 4. Khi được hỏi mật khẩu kết nối PostgreSQL, nhập `library`.
+- `start-pgadmin.ps1` đăng ký sẵn server `Library Demo` và mở pgAdmin 4. Khi được hỏi, nhập mật khẩu PostgreSQL đã đặt cho instance local.
 
 `install-local-tasks.ps1` đăng ký PostgreSQL demo, ứng dụng và Prometheus để tự khởi chạy khi đăng nhập Windows; PostgreSQL chạy trên cổng `5433`, ứng dụng chờ database sẵn sàng rồi mở cổng `8082`, và Prometheus chờ ứng dụng trước khi scrape. `start-monitoring.ps1` kiểm tra scrape và tự thêm datasource Prometheus vào Grafana; chạy script này sau khi các tác vụ đã khởi động. Grafana installer chạy như một dịch vụ Windows. Log ứng dụng và log server nằm trong `logs/` và `data/`.
 
-Để xem Grafana/Prometheus trong cấu hình Docker Compose, dùng cấu hình container ở phần trên: khi đó Grafana chạy ở cổng `3001`, Prometheus ở `9090`, và Grafana dùng tài khoản demo `admin` / `admin`. Không dùng đồng thời Prometheus trong Docker và Prometheus local vì cùng tranh cổng `9090`.
+Để xem Grafana/Prometheus trong cấu hình Docker Compose, dùng cấu hình container ở phần trên: khi đó Grafana chạy ở cổng `3001`, Prometheus ở `9090`, và Grafana dùng user `admin` với mật khẩu trong `.env`. Không dùng đồng thời Prometheus trong Docker và Prometheus local vì cùng tranh cổng `9090`.
 
 ## Chức năng
 

@@ -12,7 +12,7 @@ const promClient = require('@prometheus-io/client');
 const app = express();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const port = Number(process.env.PORT || 3000);
-const jwtSecret = process.env.JWT_SECRET || 'local-demo-secret-change-before-deploying';
+const jwtSecret = process.env.JWT_SECRET;
 const logDirectory = process.env.LOG_DIR || path.join(__dirname, '..', 'logs');
 const logFile = path.join(logDirectory, 'app.log');
 
@@ -310,9 +310,15 @@ app.use((error, req, res, next) => {
 });
 
 async function start() {
+  if (!jwtSecret || jwtSecret.length < 32) {
+    throw new Error('JWT_SECRET must contain at least 32 characters.');
+  }
+  if (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD.length < 16) {
+    throw new Error('ADMIN_PASSWORD must contain at least 16 characters.');
+  }
   await pool.query(fs.readFileSync(path.join(__dirname, '..', 'db', 'init.sql'), 'utf8'));
   const username = process.env.ADMIN_USERNAME || 'admin';
-  const password = process.env.ADMIN_PASSWORD || 'admin12345';
+  const password = process.env.ADMIN_PASSWORD;
   const passwordHash = await bcrypt.hash(password, 12);
   await pool.query(
     `INSERT INTO users (username, password_hash) VALUES ($1, $2)

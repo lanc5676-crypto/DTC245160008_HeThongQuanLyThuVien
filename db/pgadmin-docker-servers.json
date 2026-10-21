@@ -7,7 +7,6 @@
       "Port": 5432,
       "MaintenanceDB": "library",
       "Username": "library",
-      "Password": "library",
       "SSLMode": "prefer"
     }
   }
