@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>Thư viện Ngọc Lan</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main id="login-screen" class="login-screen">
+    <section class="login-card">
+      <div class="brand-mark">N</div>
+      <p class="eyebrow">KHÔNG GIAN TRI THỨC</p>
+      <h1>Thư viện<br><span>Ngọc Lan</span></h1>
+      <p class="login-copy">Đăng nhập để quản lý sách và bạn đọc của thư viện.</p>
+      <form id="login-form" class="form-stack">
+        <label>Tên đăng nhập<input name="username" autocomplete="username" value="admin" required></label>
+        <label>Mật khẩu<input name="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" required></label>
+        <p id="login-error" class="form-error" role="alert"></p>
+        <button class="button button-primary button-wide" type="submit">Đăng nhập <span>→</span></button>
+      </form>
+      <p class="login-hint">Đăng nhập bằng tài khoản do quản trị viên cấp.<br>Mở ứng dụng tại <strong>http://localhost:8082</strong>.</p>
+    </section>
+    <aside class="login-art">
+      <div class="art-label">THƯ VIỆN · TỪ 1998</div>
+      <div class="book-illustration" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      <p>“Một cuốn sách hay<br>mở ra một thế giới mới.”</p>
+      <span>Mỗi ngày, một trang sách mới.</span>
+    </aside>
+  </main>
+
+  <div id="app-shell" class="app-shell" hidden>
+    <aside class="sidebar">
+      <a class="sidebar-brand" href="#" data-view="dashboard"><span class="brand-mark small">N</span><span>Thư viện<small>NGỌC LAN</small></span></a>
+      <p class="nav-caption">KHÔNG GIAN LÀM VIỆC</p>
+      <nav class="main-nav">
+        <button class="nav-link active" data-view="dashboard"><span class="nav-icon">◫</span>Tổng quan</button>
+        <button class="nav-link" data-view="books"><span class="nav-icon">▤</span>Quản lý sách</button>
+        <button class="nav-link" data-view="readers"><span class="nav-icon">♙</span>Độc giả</button>
+        <button class="nav-link" data-view="loans"><span class="nav-icon">↗</span>Mượn &amp; trả</button>
+        <button class="nav-link" data-view="overdue"><span class="nav-icon">◷</span>Sách quá hạn<span id="overdue-nav-count" class="nav-count">0</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-note"><span class="note-icon">✳</span><strong>Góc đọc hôm nay</strong><p>“Đọc sách là cuộc trò chuyện với những người ưu tú nhất.”</p><small>— Descartes</small></div>
+        <button id="logout-button" class="logout-button"><span>↪</span> Đăng xuất</button>
+      </div>
+    </aside>
+
+    <section class="main-area">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Thư viện</span><span class="crumb-divider">/</span><strong id="page-crumb">Tổng quan</strong></div>
+        <div class="topbar-right"><span id="today-date" class="today-date"></span><div class="avatar">AD</div><div class="user-label"><strong>Quản trị viên</strong><span id="current-username">admin</span></div></div>
+      </header>
+
+      <main class="page-content">
+        <section id="view-dashboard" class="view-section">
+          <div class="welcome-row"><div><p class="eyebrow">THỨC DẬY CÙNG TRI THỨC</p><h1>Chào buổi sáng! <span class="wave">✳</span></h1><p class="muted">Đây là những gì đang diễn ra tại thư viện của bạn.</p></div><button class="button button-primary" data-action="open-loan">＋ Tạo phiếu mượn</button></div>
+          <div class="stat-grid">
+            <article class="stat-card"><div class="stat-icon lavender">▤</div><span class="stat-label">Tổng số sách</span><strong id="stat-books">—</strong><small class="stat-foot">Đầu sách trong thư viện</small><span class="stat-spark lavender-line">⌁</span></article>
+            <article class="stat-card"><div class="stat-icon mint">✓</div><span class="stat-label">Sách có sẵn</span><strong id="stat-available">—</strong><small class="stat-foot">Sẵn sàng cho lượt mượn mới</small><span class="stat-spark mint-line">⌁</span></article>
+            <article class="stat-card"><div class="stat-icon peach">↗</div><span class="stat-label">Đang được mượn</span><strong id="stat-loans">—</strong><small class="stat-foot">Phiếu mượn chưa hoàn tất</small><span class="stat-spark peach-line">⌁</span></article>
+            <article class="stat-card"><div class="stat-icon sky">♙</div><span class="stat-label">Tổng độc giả</span><strong id="stat-readers">—</strong><small class="stat-foot">Bạn đọc đã đăng ký</small><span class="stat-spark sky-line">⌁</span></article>
+          </div>
+          <section class="panel recent-panel"><div class="panel-heading"><div><h2>Hoạt động mượn sách</h2><p class="muted">Theo dõi những lượt mượn gần đây</p></div><button class="text-button" data-view="loans">Xem tất cả <span>→</span></button></div><div id="recent-loans" class="table-wrap"></div></section>
+          <div class="dashboard-bottom"><section class="panel quote-panel"><div class="quote-deco">“</div><p>Một căn phòng không có sách giống như một cơ thể không có linh hồn.</p><small>— Cicero</small></section><section class="panel quick-panel"><div><span class="quick-icon">＋</span><h3>Bắt đầu một lượt mượn mới?</h3><p class="muted">Nhập tên người mượn và chọn cuốn sách.</p></div><button class="button button-outline" data-action="open-loan">Tạo phiếu mượn <span>→</span></button></section></div>
+        </section>
+
+        <section id="view-books" class="view-section" hidden><div class="page-heading"><div><p class="eyebrow">KHO TRI THỨC</p><h1>Quản lý sách</h1><p class="muted">Danh sách những cuốn sách trong thư viện của bạn.</p></div><button class="button button-primary" data-action="add-book">＋ Thêm sách</button></div><section class="panel data-panel"><div class="toolbar"><div class="search-box"><span>⌕</span><input id="books-search" placeholder="Tìm tên sách, tác giả, thể loại..."></div><span id="books-count" class="result-count"></span></div><div id="books-table" class="table-wrap"></div></section></section>
+
+        <section id="view-readers" class="view-section" hidden><div class="page-heading"><div><p class="eyebrow">CỘNG ĐỒNG ĐỌC</p><h1>Độc giả</h1><p class="muted">Quản lý thông tin thành viên thư viện.</p></div><button class="button button-primary" data-action="add-reader">＋ Thêm độc giả</button></div><section class="panel data-panel"><div class="toolbar"><div class="search-box"><span>⌕</span><input id="readers-search" placeholder="Tìm mã sinh viên, họ tên, lớp..."></div><span id="readers-count" class="result-count"></span></div><div id="readers-table" class="table-wrap"></div></section></section>
+
+        <section id="view-loans" class="view-section" hidden><div class="page-heading"><div><p class="eyebrow">THEO DÕI GIAO DỊCH</p><h1>Mượn &amp; trả sách</h1><p class="muted">Quản lý các phiếu mượn và cập nhật trạng thái trả sách.</p></div><button class="button button-primary" data-action="open-loan">＋ Tạo phiếu mượn</button></div><section class="panel data-panel"><div id="loans-table" class="table-wrap"></div></section></section>
+
+        <section id="view-overdue" class="view-section" hidden><div class="page-heading"><div><p class="eyebrow">CẦN ĐƯỢC LƯU Ý</p><h1>Sách quá hạn <span class="overdue-heading-icon">◷</span></h1><p class="muted">Những cuốn sách đã quá ngày hẹn trả.</p></div></div><section class="panel data-panel"><div id="overdue-table" class="table-wrap"></div></section></section>
+      </main>
+      <footer class="footer"><span>© 2026 Thư viện Ngọc Lan</span><span>Nuôi dưỡng tri thức, kết nối tương lai <span class="footer-heart">♥</span></span></footer>
+    </section>
+  </div>
+
+  <dialog id="form-dialog" class="form-dialog"><div class="dialog-header"><div><p class="eyebrow" id="dialog-eyebrow">THÔNG TIN</p><h2 id="dialog-title"></h2></div><button class="icon-button" data-action="close-dialog" aria-label="Đóng">×</button></div><form id="dialog-form" class="dialog-form"></form></dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

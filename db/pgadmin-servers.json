@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Library Demo",
+      "Group": "Servers",
+      "Host": "127.0.0.1",
+      "Port": 5433,
+      "MaintenanceDB": "library",
+      "Username": "library",
+      "SSLMode": "prefer"
+    }
+  }
+}

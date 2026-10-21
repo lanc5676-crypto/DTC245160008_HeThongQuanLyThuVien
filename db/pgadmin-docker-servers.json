@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Library Docker",
+      "Group": "Servers",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "library",
+      "Username": "library",
+      "Password": "library",
+      "SSLMode": "prefer"
+    }
+  }
+}
